@@ -2,6 +2,8 @@ import Image from "next/image";
 import { config } from "@/config";
 import { deliveryLabel, formatPrice, shippingCostLabel } from "@/lib/format";
 import { OrderForm } from "@/components/OrderForm";
+import { WaitlistForm } from "@/components/WaitlistForm";
+import { sales } from "@/lib/sales";
 
 const features = [
   {
@@ -44,10 +46,14 @@ export default function Home() {
             </p>
             <p className="hero__price">
               {formatPrice(config.product.priceCents)}
-              <small>TTC · livraison {shippingCostLabel().toLowerCase()}</small>
+              <small>
+                {config.checkoutEnabled
+                  ? `TTC · livraison ${shippingCostLabel().toLowerCase()}`
+                  : "Prix indicatif · sans paiement aujourd'hui"}
+              </small>
             </p>
-            <a href="#commander" className="button button--dark">
-              Commander la veste
+            <a href={`#${sales.anchor}`} className="button button--dark">
+              {sales.heroCta}
             </a>
           </div>
           <div className="hero__visual">
@@ -84,21 +90,37 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="commander" className="order" aria-labelledby="order-title">
+      <section id={sales.anchor} className="order" aria-labelledby="order-title">
         <div className="container order__inner">
           <div className="order__intro">
-            <h2 id="order-title" className="section-title">Commander</h2>
-            <p>
-              Choisissez votre taille et la quantité. Le paiement est sécurisé par Stripe : vous
-              saisirez votre adresse de livraison et votre carte à l&apos;étape suivante.
-            </p>
-            <ul className="order__facts">
-              <li>Livraison en France métropolitaine : {deliveryLabel()}</li>
-              <li>Retour possible sous 14 jours</li>
-              <li>Reçu envoyé par e-mail</li>
-            </ul>
+            <h2 id="order-title" className="section-title">{sales.title}</h2>
+            {config.checkoutEnabled ? (
+              <>
+                <p>
+                  Choisissez votre taille et la quantité. Le paiement est sécurisé par Stripe : vous
+                  saisirez votre adresse de livraison et votre carte à l&apos;étape suivante.
+                </p>
+                <ul className="order__facts">
+                  <li>Livraison en France métropolitaine : {deliveryLabel()}</li>
+                  <li>Retour possible sous 14 jours</li>
+                  <li>Reçu envoyé par e-mail</li>
+                </ul>
+              </>
+            ) : (
+              <>
+                <p>
+                  La veste arrive bientôt. Laissez vos coordonnées, votre taille et la quantité
+                  souhaitée : nous vous recontactons en priorité dès qu&apos;elle est disponible.
+                </p>
+                <ul className="order__facts">
+                  <li>Aucun paiement maintenant, sans engagement</li>
+                  <li>Prix indicatif : {formatPrice(config.product.priceCents)} la veste</li>
+                  <li>Livraison en France métropolitaine : {deliveryLabel()}</li>
+                </ul>
+              </>
+            )}
           </div>
-          <OrderForm />
+          {config.checkoutEnabled ? <OrderForm /> : <WaitlistForm />}
         </div>
       </section>
     </>

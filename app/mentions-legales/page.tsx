@@ -24,16 +24,20 @@ export default function LegalNotice() {
 
       <h2>Hébergement</h2>
       <p>
-        Le site est hébergé par Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis —
-        vercel.com.
+        Le site est hébergé par Netlify, Inc., <Todo>adresse postale, indiquée sur netlify.com</Todo>,
+        États-Unis — netlify.com.
       </p>
 
-      <h2>Paiement</h2>
-      <p>
-        Les paiements sont traités par Stripe Payments Europe, Ltd., 1 Grand Canal Street Lower, Grand
-        Canal Dock, Dublin, D02 H210, Irlande. Aucune donnée bancaire n&apos;est conservée par{" "}
-        {config.shopName}.
-      </p>
+      {config.checkoutEnabled && (
+        <>
+          <h2>Paiement</h2>
+          <p>
+            Les paiements sont traités par Stripe Payments Europe, Ltd., 1 Grand Canal Street Lower,
+            Grand Canal Dock, Dublin, D02 H210, Irlande. Aucune donnée bancaire n&apos;est conservée
+            par {config.shopName}.
+          </p>
+        </>
+      )}
 
       <h2>Propriété intellectuelle</h2>
       <p>

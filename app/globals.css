@@ -194,13 +194,19 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   min-height: 60px;
+}
+
+.site-header .wordmark,
+.site-header__cta {
+  white-space: nowrap;
 }
 
 .wordmark {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: clamp(1.3rem, 6vw, 1.6rem);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -209,11 +215,21 @@ h3 {
 
 .site-header__cta {
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: clamp(0.72rem, 3.2vw, 0.9rem);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
+}
+
+@media (max-width: 359px) {
+  .site-header .wordmark {
+    font-size: 1.15rem;
+  }
+
+  .site-header__cta {
+    letter-spacing: 0.02em;
+  }
 }
 
 /* ---------- Hero ---------- */
@@ -576,6 +592,92 @@ h3 {
   font-size: 2.2rem;
   font-weight: 900;
   line-height: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.field-row {
+  display: grid;
+  gap: 0 16px;
+}
+
+@media (min-width: 520px) {
+  .field-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.field__optional {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: 500 1rem var(--font-text);
+}
+
+.input:hover {
+  border-color: var(--accent);
+}
+
+.input:focus-visible {
+  outline-offset: 1px;
+  border-color: var(--focus);
+}
+
+.indicative-price {
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.checkbox {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 0 0 24px;
+  cursor: pointer;
+}
+
+.checkbox input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+.confirmation h3 {
+  font-size: clamp(2rem, 9vw, 2.6rem);
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.confirmation h3:focus {
+  outline: none;
+}
+
+.confirmation p {
+  margin: 16px 0 0;
 }
 
 .form-error {

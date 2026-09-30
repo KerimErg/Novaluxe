@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { config } from "@/config";
 
 export const metadata: Metadata = {
   title: "Paiement annulé",
@@ -7,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function Cancelled() {
+  if (!config.checkoutEnabled) notFound();
   return (
     <section className="page container">
       <div className="page__card">

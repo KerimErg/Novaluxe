@@ -7,13 +7,23 @@ export const config = {
   /** Nom de la boutique (en-tête, titres, e-mails). */
   shopName: "Canarinho Store",
 
+  /**
+   * Paiement en ligne.
+   * - false : mode « liste d'attente » : formulaire de réservation (Netlify Forms), aucun paiement.
+   * - true  : paiement Stripe Checkout (voir README, section « Réactiver le paiement »).
+   */
+  checkoutEnabled: false,
+
+  /** Nom du formulaire de réservation dans Netlify (doit correspondre à public/__forms.html). */
+  waitlistFormName: "reservation",
+
   /** Produit vendu. */
   product: {
     name: "Veste Nike Brésil",
     shortName: "Veste Brésil",
     description:
       "Veste officielle de l'équipe du Brésil, produit Nike authentique. Légère, chaude et coupe-vent.",
-    /** Prix unitaire TTC en centimes (11990 = 119,90 €). Seul le serveur l'utilise pour facturer. */
+    /** Prix unitaire TTC en centimes (11990 = 119,90 €). Prix indicatif en liste d'attente ; seul le serveur l'utilise pour facturer. */
     priceCents: 11990,
     currency: "eur",
     sizes: ["S", "M", "L", "XL", "XXL"] as const,
@@ -29,7 +39,7 @@ export const config = {
     maxDays: 5,
   },
 
-  /** Adresse qui reçoit la notification de chaque nouvelle commande. */
+  /** Adresse qui reçoit la notification de chaque nouvelle commande (mode paiement uniquement). */
   notificationEmail: "vous@exemple.fr", // [À COMPLÉTER]
 
   /** Adresse de contact affichée aux clients (pages légales, confirmation). */

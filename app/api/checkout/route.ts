@@ -8,6 +8,10 @@ function siteUrl(request: Request): string {
 }
 
 export async function POST(request: Request) {
+  // Paiement désactivé (mode liste d'attente) : voir config.checkoutEnabled.
+  if (!config.checkoutEnabled) {
+    return NextResponse.json({ error: "Paiement en ligne désactivé." }, { status: 404 });
+  }
   const body = await request.json().catch(() => null);
   const order = parseOrder(body);
   if (!order) {

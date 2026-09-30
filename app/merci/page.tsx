@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import type Stripe from "stripe";
 import { config } from "@/config";
 import { deliveryLabel, formatPrice } from "@/lib/format";
@@ -26,6 +27,7 @@ export default async function ThankYou({
 }: {
   searchParams: Promise<{ session_id?: string }>;
 }) {
+  if (!config.checkoutEnabled) notFound();
   const { session_id } = await searchParams;
   const session = await getSession(session_id);
 

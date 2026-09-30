@@ -57,6 +57,10 @@ async function notifyNewOrder(session: Stripe.Checkout.Session) {
 }
 
 export async function POST(request: Request) {
+  // Paiement désactivé (mode liste d'attente) : voir config.checkoutEnabled.
+  if (!config.checkoutEnabled) {
+    return NextResponse.json({ error: "Paiement en ligne désactivé." }, { status: 404 });
+  }
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   const signature = request.headers.get("stripe-signature");
   if (!secret || !signature) {

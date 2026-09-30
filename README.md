@@ -1,220 +1,197 @@
 # Canarinho Store — Veste Brésil
 
-Site e-commerce d'un seul produit (veste Nike Brésil) : Next.js + Stripe Checkout + Resend.
-Pas de base de données : **Stripe est votre registre de commandes** (tableau de bord Stripe → Paiements).
+Site d'un seul produit (veste Nike Brésil), construit avec Next.js et hébergé sur Netlify.
 
-- Page d'accueil : présentation, galerie, choix de la taille et de la quantité, paiement.
-- `/merci` : confirmation après paiement (récapitulatif lu depuis Stripe).
-- `/annule` : retour si le client abandonne le paiement.
-- `/api/checkout` : crée la session de paiement Stripe. **Le prix est calculé ici, côté serveur.**
-- `/api/webhook` : reçu de Stripe après chaque paiement → vous envoie un e-mail « nouvelle commande ».
-- `/mentions-legales`, `/cgv`, `/confidentialite` : textes modèles à compléter.
+**Mode actuel : liste d'attente.** Les visiteurs remplissent le formulaire « Je veux cette veste »
+(prénom, e-mail, téléphone facultatif, taille, quantité, accord pour être recontacté). Les réponses
+arrivent dans **Netlify Forms**. Aucun paiement n'est demandé.
+
+Le paiement en ligne (Stripe Checkout + e-mail de notification Resend) est toujours dans le projet,
+mais **désactivé**. Voir [Réactiver le paiement](#7-réactiver-le-paiement-en-ligne-plus-tard).
 
 ---
 
-## 0. Ce qu'il faut modifier avant de vendre
+## 0. Ce qu'il faut modifier avant la mise en ligne
 
-1. **`config.ts`** (à la racine) : nom de la boutique, prix (en centimes : `11990` = 119,90 €),
-   délais et frais de livraison, **e-mail qui reçoit les notifications** (`notificationEmail`),
-   e-mail de contact, liste des photos.
+1. **`config.ts`** (à la racine) : nom de la boutique, prix indicatif (en centimes : `11990` =
+   119,90 €), délais de livraison, **e-mail de contact** (`contactEmail`), liste des photos.
 2. **Photos** : déposez vos photos dans `public/images/` (par ex. `veste-1.jpg` … `veste-4.jpg`,
    format portrait 4:5 conseillé, ~1600 × 2000 px), puis mettez à jour les chemins dans `config.ts`
    (`images`). Supprimez ensuite les fichiers `veste-*.svg` (placeholders).
 3. **Pages légales** : cherchez `[À COMPLÉTER` dans le dossier `app/` (ils sont surlignés en jaune
-   sur le site) et remplacez chaque `<Todo>…</Todo>` par votre texte. Faites-les relire si vous
-   avez un doute.
+   sur le site) et remplacez chaque `<Todo>…</Todo>` par votre texte. Dans la politique de
+   confidentialité, vérifiez surtout la **durée de conservation** des réservations (12 mois
+   proposés).
 
 ---
 
-## 1. Installer le projet sur votre ordinateur
+## 1. Installer et lancer le site sur votre ordinateur
 
 Prérequis : [Node.js](https://nodejs.org) version 20 ou plus (prenez la version « LTS »).
 
 ```bash
 npm install
-cp .env.example .env.local
-```
-
-Le fichier `.env.local` contient vos clés secrètes. **Ne le partagez jamais et ne le publiez pas sur
-GitHub** (il est déjà ignoré par git).
-
----
-
-## 2. Créer un compte Stripe et récupérer les clés
-
-1. Créez un compte sur <https://dashboard.stripe.com/register>.
-2. Vous êtes automatiquement en **mode test** (bandeau « Environnement de test » / « Test mode »).
-   En mode test, aucun argent réel ne circule.
-3. Allez dans **Développeurs → Clés API** (<https://dashboard.stripe.com/test/apikeys>).
-4. Copiez la **clé secrète** (`sk_test_…`) et collez-la dans `.env.local` :
-
-   ```
-   STRIPE_SECRET_KEY=sk_test_...
-   ```
-
-   (La clé publiable `pk_test_…` n'est pas nécessaire : le paiement se fait sur la page Stripe.)
-
-5. Recommandé : **Paramètres → Image de marque (Branding)** pour ajouter votre nom, vos couleurs
-   (jaune `#FFD500`, vert `#00843D`) et une icône sur la page de paiement Stripe.
-
----
-
-## 3. Lancer le site en local
-
-```bash
 npm run dev
 ```
 
-Ouvrez <http://localhost:3000>. Choisissez une taille, une quantité, puis « Payer ma commande » :
-vous êtes redirigé vers la page de paiement Stripe.
+Ouvrez <http://localhost:3000>.
 
-### Tester un paiement avec une carte de test
+> **En local, l'envoi du formulaire affiche « L'envoi a échoué » : c'est normal.** Les réponses
+> sont reçues par Netlify, qui n'existe que sur le site en ligne. Testez l'envoi après le
+> déploiement (étape 4).
 
-Sur la page Stripe, utilisez :
-
-| Champ | Valeur |
-| --- | --- |
-| Numéro de carte | `4242 4242 4242 4242` (paiement accepté) |
-| Date d'expiration | n'importe quelle date future, ex. `12/34` |
-| CVC | n'importe quels 3 chiffres, ex. `123` |
-| Adresse | n'importe quelle adresse en France |
-
-Autres cartes utiles : `4000 0025 0000 3155` (demande une validation 3D Secure),
-`4000 0000 0000 9995` (paiement refusé). Liste complète :
-<https://docs.stripe.com/testing>.
-
-Après le paiement, vous arrivez sur `/merci` avec le récapitulatif. La commande apparaît dans
-Stripe → **Paiements** (la taille et la quantité sont dans les « Métadonnées »).
+Aucune variable d'environnement n'est nécessaire en mode liste d'attente.
 
 ---
 
-## 4. Recevoir un e-mail à chaque commande (Resend + webhook)
+## 2. Déployer sur Netlify
 
-### 4a. Créer la clé Resend
+1. Créez un compte sur <https://app.netlify.com/signup> avec votre compte GitHub.
+2. **Add new project → Import an existing project → GitHub**, puis choisissez ce dépôt.
+3. Netlify lit le fichier `netlify.toml` : les réglages sont déjà remplis
+   (commande `npm run build`, dossier `.next`, adaptateur Next.js). Ne changez rien.
+4. Cliquez sur **Deploy**. Après 1 à 2 minutes, votre site est en ligne à une adresse du type
+   `https://nom-du-site.netlify.app` (modifiable dans **Site configuration → Change site name**).
+5. Nom de domaine personnalisé (facultatif) : **Domain management → Add a domain**.
 
-1. Créez un compte sur <https://resend.com> **avec l'adresse e-mail où vous voulez recevoir les
-   commandes**.
-2. **API Keys → Create API Key**, copiez la clé (`re_…`) dans `.env.local` :
+Ensuite, chaque modification poussée sur la branche `main` de GitHub redéploie le site
+automatiquement.
 
-   ```
-   RESEND_API_KEY=re_...
-   ```
+## 3. Activer la réception des formulaires (Netlify Forms)
 
-3. Mettez la même adresse dans `config.ts` → `notificationEmail`.
+1. Dans Netlify, ouvrez votre projet → **Forms**.
+2. Cliquez sur **Enable form detection** (activer la détection des formulaires).
+3. **Redéployez** pour que Netlify détecte le formulaire : **Deploys → Trigger deploy → Deploy site**.
+4. Retournez dans **Forms** : le formulaire **`reservation`** doit apparaître dans la liste.
 
-> Sans nom de domaine vérifié, Resend envoie depuis `onboarding@resend.dev` et **uniquement vers
-> l'adresse de votre compte Resend**. C'est suffisant pour vos notifications. Si vous avez un nom de
-> domaine, vérifiez-le dans Resend → Domains puis changez `RESEND_FROM`
-> (ex. `Canarinho Store <commandes@votre-domaine.fr>`).
+> Netlify détecte le formulaire grâce au fichier `public/__forms.html`. Si vous ajoutez ou renommez
+> un champ dans `components/WaitlistForm.tsx`, faites la même modification dans ce fichier.
 
-### 4b. Tester le webhook en local avec la Stripe CLI
+### Recevoir un e-mail à chaque réservation
 
-Stripe ne peut pas joindre `localhost` directement : la Stripe CLI fait le relais.
+1. **Site configuration → Notifications → Emails and webhooks → Form submission notifications**.
+2. **Add notification → Email notification**.
+3. Saisissez votre adresse e-mail et choisissez le formulaire **`reservation`**. Enregistrez.
 
-1. Installez la CLI : <https://docs.stripe.com/stripe-cli> (macOS : `brew install stripe/stripe-cli/stripe`).
-2. Connectez-la à votre compte : `stripe login`
-3. Dans un **second terminal** (laissez `npm run dev` tourner dans le premier) :
+## 4. Tester
 
-   ```bash
-   stripe listen --forward-to localhost:3000/api/webhook
-   ```
+1. Sur le site en ligne, remplissez le formulaire avec vos propres coordonnées et envoyez-le.
+2. Le message « C'est noté, merci ! » s'affiche.
+3. Dans Netlify → **Forms → reservation**, la réponse apparaît (prénom, e-mail, téléphone, taille,
+   quantité, consentement « oui »), et vous recevez l'e-mail de notification.
 
-4. La commande affiche `Your webhook signing secret is whsec_…`. Copiez ce secret dans `.env.local` :
-
-   ```
-   STRIPE_WEBHOOK_SECRET=whsec_...
-   ```
-
-5. Redémarrez `npm run dev` (Ctrl+C puis relancez), puis refaites un paiement test.
-   Dans le terminal `stripe listen`, vous devez voir `checkout.session.completed … [200]`,
-   et vous recevez l'e-mail « Nouvelle commande » avec nom, adresse, téléphone, taille, quantité et
-   montant.
+Si rien n'apparaît, regardez dans **Forms → Spam submissions** : un envoi de test peut y être classé
+par erreur (cliquez sur « Verified submission » pour le récupérer).
 
 ---
 
-## 5. Déployer sur Vercel
+## 5. Gérer les réservations au quotidien
 
-1. Poussez le projet sur GitHub (c'est déjà le cas si vous lisez ceci sur GitHub).
-2. Créez un compte sur <https://vercel.com> avec votre compte GitHub.
-3. **Add New… → Project**, choisissez ce dépôt, laissez les réglages par défaut (Next.js est détecté).
-4. Avant de cliquer sur **Deploy**, ouvrez **Environment Variables** et ajoutez :
+- **Consulter** : Netlify → Forms → `reservation`.
+- **Exporter** (tableur) : bouton **Download as CSV** sur la même page.
+- **Supprimer** une réservation (demande d'un visiteur, ou durée de conservation atteinte) :
+  ouvrez la réponse → **Delete**. Pensez à supprimer aussi le fichier CSV exporté si vous en avez un.
+- **Limites** : l'offre gratuite de Netlify limite le nombre de réponses par mois ; vérifiez-le dans
+  **Team settings → Billing / Usage**.
+- **Spam** : le formulaire contient un champ piège invisible (« honeypot ») et Netlify filtre
+  automatiquement le spam.
 
-   | Nom | Valeur |
-   | --- | --- |
-   | `STRIPE_SECRET_KEY` | `sk_test_…` (on passera en réel plus tard) |
-   | `STRIPE_WEBHOOK_SECRET` | laissez vide pour l'instant, voir étape 6 |
-   | `RESEND_API_KEY` | `re_…` |
-   | `RESEND_FROM` | `Canarinho Store <onboarding@resend.dev>` |
-   | `NEXT_PUBLIC_SITE_URL` | l'adresse de votre site, ex. `https://canarinho-store.vercel.app` |
+## 6. Données personnelles (RGPD) — en bref
 
-5. **Deploy**. Notez l'adresse du site (ex. `https://canarinho-store.vercel.app`).
-   Si vous ajoutez un nom de domaine (Vercel → Settings → Domains), mettez à jour
-   `NEXT_PUBLIC_SITE_URL`.
-
-## 6. Configurer le webhook Stripe pour le site en ligne
-
-1. Stripe (toujours en mode test) → **Développeurs → Webhooks → Ajouter une destination**
-   (<https://dashboard.stripe.com/test/webhooks>).
-2. Événement à écouter : **`checkout.session.completed`** uniquement.
-3. Type de destination : **Point de terminaison webhook**, URL :
-   `https://VOTRE-SITE.vercel.app/api/webhook`
-4. Une fois créé, cliquez sur **Afficher/Révéler le secret de signature** (`whsec_…`).
-5. Vercel → votre projet → **Settings → Environment Variables** → `STRIPE_WEBHOOK_SECRET` = ce secret.
-6. **Deployments → ⋯ → Redeploy** (les variables ne sont prises en compte qu'au déploiement suivant).
-7. Faites un paiement test sur le site en ligne avec la carte `4242 4242 4242 4242` : vous devez
-   recevoir l'e-mail, et Stripe → Webhooks doit afficher une réponse **200**.
+- La case « J'accepte d'être recontacté au sujet de cette veste » est **obligatoire** : c'est la base
+  légale de la collecte (consentement). Ne l'enlevez pas.
+- N'utilisez ces contacts **que pour cette veste** (pas de newsletter, pas de revente de fichier).
+- Supprimez les réservations à la fin de la durée indiquée dans la politique de confidentialité.
+- Si quelqu'un vous demande de supprimer ses données, faites-le rapidement (étape 5).
 
 ---
 
-## 7. Passer en mode réel (vrais paiements)
+## 7. Réactiver le paiement en ligne plus tard
 
-1. Dans Stripe, **activez votre compte** (bouton « Activer les paiements ») : identité, statut
-   (micro-entreprise, etc.), IBAN pour les virements. Stripe vérifie ces informations.
-2. Désactivez le mode test (interrupteur en haut du tableau de bord).
-3. Récupérez la **clé secrète réelle** `sk_live_…` (Développeurs → Clés API).
-4. Recréez le webhook **en mode réel** (étape 6, mêmes réglages) et récupérez son nouveau
-   secret `whsec_…` (il est différent de celui du mode test).
-5. Vercel → Environment Variables : remplacez `STRIPE_SECRET_KEY` par `sk_live_…` et
-   `STRIPE_WEBHOOK_SECRET` par le nouveau secret, puis **Redeploy**.
-6. **Reçus clients** : Stripe → **Paramètres → E-mails clients** (<https://dashboard.stripe.com/settings/emails>)
-   → activez « Paiements réussis ». Stripe enverra alors automatiquement un reçu au client
-   (en mode test, les reçus ne sont pas envoyés automatiquement).
-7. Faites un vrai achat de contrôle, puis remboursez-le depuis Stripe → Paiements → Rembourser.
+Le code Stripe est toujours présent : `app/api/checkout`, `app/api/webhook`, `app/merci`,
+`app/annule` et `components/OrderForm.tsx`. Tant que `checkoutEnabled` vaut `false`, ces adresses
+répondent « page introuvable » (404).
 
-Checklist avant ouverture : pages légales complétées (plus aucun `[À COMPLÉTER]`), vraies photos,
-e-mail de notification correct dans `config.ts`, prix vérifié.
+### 7a. Basculer le site en mode paiement
+
+1. Dans `config.ts` : `checkoutEnabled: true`, et renseignez `notificationEmail` (adresse qui reçoit
+   les commandes).
+2. Le site affiche alors le bloc « Commander » avec le bouton « Payer ma commande ». Les pages légales
+   ajoutent automatiquement les sections paiement et livraison. Relisez les CGV avant d'ouvrir les
+   ventes.
+
+### 7b. Stripe : compte et clés
+
+1. Créez un compte sur <https://dashboard.stripe.com/register>. Vous démarrez en **mode test** :
+   aucun argent réel ne circule.
+2. **Développeurs → Clés API** : copiez la **clé secrète** (`sk_test_…`).
+3. En local : `cp .env.example .env.local`, puis collez-la dans `STRIPE_SECRET_KEY`.
+4. Recommandé : **Paramètres → Image de marque** pour ajouter vos couleurs (jaune `#FFD500`,
+   vert `#00843D`) sur la page de paiement Stripe.
+
+Pour tester un paiement, utilisez la carte `4242 4242 4242 4242`, une date future (ex. `12/34`),
+un CVC quelconque (ex. `123`) et une adresse en France. Carte refusée : `4000 0000 0000 9995`.
+Liste complète : <https://docs.stripe.com/testing>.
+
+### 7c. E-mail « nouvelle commande » (Resend + webhook)
+
+1. Créez un compte sur <https://resend.com> **avec l'adresse qui doit recevoir les commandes** (la
+   même que `notificationEmail`). **API Keys → Create API Key** → collez-la dans `RESEND_API_KEY`.
+2. Test en local avec la [Stripe CLI](https://docs.stripe.com/stripe-cli) :
+   `stripe login`, puis dans un second terminal
+   `stripe listen --forward-to localhost:3000/api/webhook`. Copiez le secret `whsec_…` affiché dans
+   `STRIPE_WEBHOOK_SECRET` et redémarrez `npm run dev`.
+
+### 7d. Mise en ligne sur Netlify
+
+1. Stripe → **Développeurs → Webhooks → Ajouter une destination** : événement
+   **`checkout.session.completed`**, URL `https://VOTRE-SITE.netlify.app/api/webhook`. Copiez son
+   secret de signature (`whsec_…`).
+2. Netlify → **Site configuration → Environment variables** : ajoutez `STRIPE_SECRET_KEY`,
+   `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `RESEND_FROM` et `NEXT_PUBLIC_SITE_URL`
+   (ex. `https://VOTRE-SITE.netlify.app`). Voir `.env.example`.
+3. **Deploys → Trigger deploy → Deploy site** : les variables ne sont prises en compte qu'au
+   déploiement suivant.
+4. Faites un paiement test : vous devez arriver sur `/merci` et recevoir l'e-mail de commande.
+
+### 7e. Passer en mode réel (vrais paiements)
+
+1. Stripe → **Activer les paiements** : identité, statut (micro-entreprise…), IBAN.
+2. Quittez le mode test, récupérez la clé `sk_live_…` et recréez le webhook en mode réel (nouveau
+   secret `whsec_…`).
+3. Remplacez les deux valeurs dans les variables Netlify, puis redéployez.
+4. Stripe → **Paramètres → E-mails clients** → activez « Paiements réussis » pour que vos clients
+   reçoivent un reçu.
+5. Faites un vrai achat de contrôle, puis remboursez-le (Stripe → Paiements → Rembourser).
 
 ---
-
-## Gérer les commandes au quotidien
-
-- **Nouvelle commande** : vous recevez un e-mail. Tous les détails sont aussi dans Stripe →
-  Paiements → cliquez sur le paiement (adresse de livraison, téléphone, métadonnées taille/quantité).
-- **Remboursement / rétractation** : Stripe → Paiements → le paiement → **Rembourser**.
-- **Changer le prix** : modifiez `priceCents` dans `config.ts`, commitez, Vercel redéploie tout seul.
-- **Rupture de stock sur une taille** : retirez-la de `sizes` dans `config.ts`.
 
 ## Commandes utiles
 
 ```bash
 npm run dev        # site en local sur http://localhost:3000
-npm run build      # vérifie que le site se construit sans erreur (comme sur Vercel)
+npm run build      # vérifie que le site se construit sans erreur (comme sur Netlify)
 npm run typecheck  # vérification TypeScript
 ```
 
 ## Structure
 
 ```
-config.ts                  ← tous les réglages de la boutique
-app/page.tsx               ← page d'accueil
-app/api/checkout/route.ts  ← création de la session Stripe (prix calculé ici)
-app/api/webhook/route.ts   ← réception des paiements + e-mail de notification
-app/merci, app/annule      ← pages de retour
-app/mentions-legales, app/cgv, app/confidentialite
-components/OrderForm.tsx   ← choix taille / quantité, total en direct
-app/globals.css            ← styles (couleurs, mode sombre)
-public/images/             ← photos du produit
+config.ts                    ← tous les réglages (dont checkoutEnabled)
+netlify.toml                 ← configuration du déploiement Netlify
+app/page.tsx                 ← page d'accueil
+components/WaitlistForm.tsx  ← formulaire « Je veux cette veste » (mode liste d'attente)
+public/__forms.html          ← déclaration du formulaire pour Netlify Forms
+app/confidentialite, app/mentions-legales, app/cgv  ← pages légales
+app/globals.css              ← styles (couleurs, mode sombre)
+public/images/               ← photos du produit
+
+# Paiement (désactivé tant que checkoutEnabled = false)
+components/OrderForm.tsx     ← choix taille / quantité + bouton de paiement
+app/api/checkout/route.ts    ← création de la session Stripe (prix calculé côté serveur)
+app/api/webhook/route.ts     ← réception des paiements + e-mail Resend
+app/merci, app/annule        ← pages de retour après paiement
 ```
 
 Le logo Nike et l'écusson de la fédération brésilienne ne sont volontairement pas utilisés.
-N'en ajoutez pas sur le site ni sur vos photos d'illustration (photographiez le produit réel).
+N'en ajoutez pas sur le site ni sur vos visuels (photographiez le produit réel).

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { config } from "@/config";
+import { sales } from "@/lib/sales";
 
 export function Header() {
   return (
@@ -8,8 +9,8 @@ export function Header() {
         <Link href="/" className="wordmark">
           {config.shopName}
         </Link>
-        <Link href="/#commander" className="site-header__cta">
-          Commander
+        <Link href={`/#${sales.anchor}`} className="site-header__cta">
+          {sales.cta}
         </Link>
       </div>
     </header>

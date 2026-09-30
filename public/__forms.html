@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  Formulaire « fantôme » destiné à Netlify Forms : Netlify lit ce fichier au déploiement
+  pour détecter le formulaire « reservation » et ses champs. Il n'est pas affiché aux visiteurs :
+  le formulaire visible est components/WaitlistForm.tsx, qui envoie ses réponses à cette adresse.
+  Si vous ajoutez ou renommez un champ, faites-le aux deux endroits.
+-->
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>Formulaire de réservation</title>
+  </head>
+  <body>
+    <form name="reservation" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="reservation" />
+      <input name="bot-field" />
+      <input name="prenom" type="text" />
+      <input name="email" type="email" />
+      <input name="telephone" type="tel" />
+      <input name="taille" type="text" />
+      <input name="quantite" type="number" />
+      <input name="consentement" type="checkbox" value="oui" />
+    </form>
+  </body>
+</html>
