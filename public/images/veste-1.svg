@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000" role="img" aria-label="Emplacement photo 1">
+  <rect width="800" height="1000" fill="#FFE866"/>
+  <g opacity="0.95"><path d="M300 170 L360 150 Q400 190 440 150 L500 170 L620 250 L680 560 L610 580 L570 400 L570 820 L230 820 L230 400 L190 580 L120 560 L180 250 Z" fill="#00843D"/><path d="M360 150 Q400 190 440 150 L440 175 Q400 215 360 175 Z" fill="#FFD500"/><path d="M398 190 L402 190 L402 820 L398 820 Z" fill="#FFD500"/><path d="M180 250 L230 400 L230 420 L185 275 Z M620 250 L570 400 L570 420 L615 275 Z" fill="#FFD500"/><rect x="230" y="790" width="340" height="30" fill="#00562A"/></g>
+  <text x="400" y="930" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-size="40" font-weight="700" fill="#0B2A6B" letter-spacing="3">PHOTO 1 · FACE</text>
+  <text x="400" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#0B2A6B" opacity="0.8">Remplacer par votre photo (public/images)</text>
+</svg>
